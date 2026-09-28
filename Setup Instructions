@@ -32,11 +32,6 @@ SMTP_*, MAIL_FROM, APP_URL	[If shipped] outbound email for invites/OTP	No — fa
 Running tests
 bash
 npm test
-Demo Credentials
 
-Seeded by npm run db:seed:
-
-Role	Email	Password
-Member	[veni@gmail.com]	[12345678]
 
 The seed also creates one demo project with several stories and tasks, deliberately including a blocked task, an overdue task, and a task left "in progress" for several days — so the health badges and the digest have something meaningful to show immediately, without manual setup.
