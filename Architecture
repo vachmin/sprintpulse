@@ -1,0 +1,15 @@
+sprintpulse-lite/
+├── apps/
+│   ├── api/            # Fastify + Zod REST API, Drizzle ORM, SQLite
+│   │   ├── src/
+│   │   │   ├── routes/      # HTTP layer only — no queries here
+│   │   │   ├── services/    # business logic, authorization helpers
+│   │   │   ├── domain/      # pure functions (e.g. story health calculation)
+│   │   │   ├── jobs/        # queue, worker loop, job handlers
+│   │   │   ├── db/          # Drizzle schema, migrations, connection
+│   │   │   └── worker.ts    # separate entrypoint — the background process
+│   │   └── drizzle/         # SQL migrations
+│   └── web/             # React + Vite + Tailwind + TanStack Query frontend
+├── SPEC.md              # living spec used to drive AI-assisted development
+├── AI_LOG.md            # log of AI-generated mistakes caught and fixed
+└── README.md
