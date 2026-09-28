@@ -1,0 +1,11 @@
+I used an AI coding assistant (Codex) throughout development, working from a written specification (SPEC.md) and building the app in small, reviewed slices — schema, then auth, then the Project → Story → Task hierarchy, then the async job queue and worker, then the frontend — rather than generating the whole application in one pass. Each slice was reviewed, tested, and committed before moving to the next.
+
+A running log of specific mistakes the AI made and how I corrected them is kept in AI_LOG.md. Notable examples include:
+
+[Fill in 3–4 real entries from your actual AI_LOG.md, e.g.:]
+An early version updated status_changed_at on every task edit, not just actual status changes, which silently broke stale-task detection; I caught this by reading the generated service function and added an explicit before/after comparison.
+The assignee-validation logic initially checked only that a user existed, not that they were a member of the relevant project; I added the membership check and a test for it.
+A database migration hung indefinitely during an interactive drizzle-kit generate prompt in a non-interactive terminal; I diagnosed it by inspecting the running process, and had subsequent migrations written as plain hand-authored SQL instead.
+A force-killed process during a stuck migration corrupted the SQLite file (database disk image is malformed); I identified this from the raw error in the API logs, recovered by rebuilding the dev database from migrations, and had the AI add a startup integrity check plus graceful shutdown handling to prevent a repeat.
+
+I treated the AI as a fast typist working against a spec I wrote and reviewed, not as a source of architectural decisions — the schema, the endpoint list, the job-queue design, and the authorization model were specified up front; the AI's job was implementing them correctly and being checked against that spec afterward.
