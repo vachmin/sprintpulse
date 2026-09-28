@@ -13,3 +13,13 @@ sprintpulse-lite/
 ├── SPEC.md              # living spec used to drive AI-assisted development
 ├── AI_LOG.md            # log of AI-generated mistakes caught and fixed
 └── README.md
+
+Runtime shape : the API and the worker are two separate Node processes reading the same SQLite file (in WAL mode, so concurrent reads/writes are safe).
+The frontend talks only to the API over HTTP; it never touches the database or the job queue directly. 
+This separation is what makes the async workflow genuinely asynchronous — a slow or failing digest job cannot block or slow down a request to the API.
+Request flow example (generate digest):
+User clicks "Generate now" → POST /projects/:id/digests
+API enqueues a job row and immediately returns 202 { jobId }
+Frontend polls GET /jobs/:id every ~1.5s
+Worker picks up the job independently, runs the digest handler, writes a digests row
+Frontend sees status: succeeded and fetches the finished digest
