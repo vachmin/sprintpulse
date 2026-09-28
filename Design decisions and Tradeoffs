@@ -1,0 +1,8 @@
+
+SQLite over Postgres	Zero setup, meets the assignment's stated allowance, and both API and worker can share one file safely under WAL mode	Wouldn't horizontally scale; fine for 3–10 users
+DB-backed job queue over Redis/BullMQ	No extra infrastructure; failure states are plain SQL rows, easy to inspect and explain	Would need a real broker at higher job volume/throughput
+Health/progress computed on read, not stored	Can never drift out of sync with underlying task data	Slightly more computation per request (negligible at this scale)
+Single status_changed_at column instead of a full audit log for staleness	Answers "how long has this been in this status" with one column instead of a join across history	Only knows the latest transition, not full history [unless activity_log was shipped, in which case update this row]
+404 (not 403) for non-members on project-scoped routes	Prevents confirming a project ID exists to someone outside it	Slightly less conventional REST semantics, chosen deliberately for privacy
+JWT in an httpOnly cookie over a bearer token in localStorage	Not readable by JavaScript, so immune to XSS-based token theft	Requires CORS/cookie configuration care between frontend and API origins
+Monorepo, single language (TypeScript) throughout	One toolchain, one type system shared conceptually across frontend/backend	N/A — chosen for a solo, time-boxed build
