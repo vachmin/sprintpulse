@@ -1,0 +1,12 @@
+Passwords are hashed with argon2id (never stored or logged in plaintext); password hashes are never included in any API response, enforced via explicit response schemas that strip unknown fields rather than relying on remembering to omit a field.
+Authentication uses a JWT in an httpOnly, SameSite=Lax cookie (not accessible to JavaScript, reducing XSS impact; Secure is enabled in production).
+Authorization is checked on every project-scoped route through one shared helper (requireProjectMember / requireProjectOwner), rather than ad hoc checks per route, specifically to avoid the class of bug where one endpoint is accidentally left unguarded. Non-members receive a generic 404 rather than 403, so the API never confirms a resource exists to someone who shouldn't see it (an anti-IDOR measure, tested explicitly — see AI_LOG.md).
+Input validation is enforced with Zod on every route (body, params, and query), and all database access goes through the ORM with parameterized queries — no raw string-built SQL.
+Rate limiting is applied to authentication endpoints to slow down credential-stuffing attempts.
+CORS is restricted to an explicit origin allowlist (CORS_ORIGINS), not a wildcard, and is combined with credentials: true deliberately (a wildcard origin with credentials is invalid and was avoided).
+Error responses never leak stack traces or internal error text to the client; unexpected errors are logged server-side and returned to the client as a generic message.
+Secrets live only in .env (git-ignored), with a committed .env.example documenting what's required without exposing real values.
+Known gaps (honestly stated)
+No refresh-token rotation — the JWT is long-lived (7 days) with no revocation list.
+No CSRF token beyond the SameSite=Lax + JSON-content-type mitigation described in the code.
+[If shipped] The email-based invite/OTP flow depends on correctly configured SMTP credentials that are not committed; without them, the app falls back to logging the message to the console rather than failing the request.
