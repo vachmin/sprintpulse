@@ -1,0 +1,3 @@
+npm test
+
+Covers: authentication and session handling, authorization/IDOR checks on every project-scoped resource, the story health/progress calculation (pure function, unit-tested independently of the database), task status-transition rules, the job queue's atomic claiming and backoff behavior, and the digest generation handler against seeded data.
