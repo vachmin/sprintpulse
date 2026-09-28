@@ -1,3 +1,25 @@
 SQLite via Drizzle ORM. Timestamps are stored as ISO 8601 UTC strings; dates as YYYY-MM-DD. 
 Every connection (API and worker) enables PRAGMA foreign_keys=ON, PRAGMA journal_mode=WAL, and PRAGMA busy_timeout=5000 so the two processes can share one file safely.
 
+Core tables
+
+users — id, email (unique), name, password_hash (argon2id), created_at
+
+projects — id, name, key (unique, e.g. SPR), description, owner_id → users, created_at
+
+project_members — (project_id, user_id) composite key, join table for membership
+
+stories — id, project_id → projects (cascade delete), title, description, status (todo | in_progress | done), priority (low | medium | high), assignee_id → users, created_at, updated_at
+
+tasks — id, story_id → stories (cascade delete), title, status (todo | in_progress | blocked | done), assignee_id → users, due_date, status_changed_at, completed_at, created_at
+
+jobs (the async queue) — id, type, payload (JSON), status (pending | running | succeeded | failed | dead), attempts, max_attempts, run_at, locked_at, last_error, idempotency_key (unique)
+
+digests — id, project_id → projects, job_id → jobs, period_start, period_end, summary_json, created_at
+
+[If shipped, add: sprints, comments, activity_log, notifications — document the same way.]
+
+Design notes on the schema
+Story health and progress are computed on read, never stored. They're derived from a story's tasks each time they're needed, so they can never drift out of sync with the underlying data. The cost is a bit more computation per request; the benefit is one less place for a bug to hide.
+status_changed_at drives staleness detection. Rather than maintaining a full audit history table for this, a single timestamp column is updated only when a task's status actually changes (not on every edit), which is enough to answer "how long has this been in progress?"
+Tasks have no direct project_id. Authorization for a task resolves through task → story → project → membership. That's one extra join, done through a single reusable helper, in exchange for not duplicating the project relationship on every child table.
