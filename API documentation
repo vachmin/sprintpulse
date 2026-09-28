@@ -1,0 +1,19 @@
+Full interactive documentation (generated from the same Zod schemas that validate requests, so it cannot drift from the real behavior) is available at /docs once the API is running (Swagger UI, OpenAPI spec).
+
+Endpoint summary
+Area	Endpoints
+Auth	POST /auth/register, POST /auth/login, POST /auth/logout, GET /auth/me
+Projects	GET/POST /projects, GET/PATCH /projects/:id, POST/DELETE /projects/:id/members
+Stories	GET/POST /projects/:id/stories, GET/PATCH/DELETE /stories/:id, PATCH /stories/:id/move
+Tasks	POST /stories/:id/tasks, PATCH/DELETE /tasks/:id, PATCH /tasks/:id/move
+Board	GET /projects/:id/board — full hierarchy + computed health in one call
+Digests (async)	POST /projects/:id/digests (202, enqueues), GET /projects/:id/digests, GET /jobs/:id
+[If shipped] Notifications	GET /notifications, POST /notifications/:id/read
+[If shipped] Admin	GET /admin/jobs, POST /admin/jobs/:id/retry
+
+All responses use one error shape:
+
+json
+{ "error": { "code": "VALIDATION_ERROR", "message": "...", "details": { } } }
+
+All list endpoints are paginated (?limit, ?offset) and return { data, pagination }. Every route except registration/login requires authentication, and every project-scoped route additionally checks project membership — a request for a project you don't belong to returns 404, not 403, so the API never confirms that a given project ID even exists to someone outside it.
