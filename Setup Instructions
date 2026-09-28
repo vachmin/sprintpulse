@@ -1,0 +1,42 @@
+Prerequisites
+Node.js [20.x or 22.x LTS] — native modules (better-sqlite3, argon2) require an LTS build
+npm [version]
+Install & run
+bash
+git clone [your repo URL]
+cd sprintpulse-lite
+npm install
+
+# copy and fill in environment variables
+cp apps/api/.env.example apps/api/.env
+# open apps/api/.env and set JWT_SECRET to any random string of 32+ characters
+
+npm run db:migrate
+npm run db:seed
+npm run dev
+
+This starts three processes concurrently: the API, the background worker, and the Vite dev server.
+
+Frontend: http://localhost:5173
+API: http://localhost:[3000]
+API docs (Swagger UI): http://localhost:[3000]/docs
+Environment variables
+Variable	Purpose	Required
+PORT	API port	No, defaults to 3000
+JWT_SECRET	Signs auth cookies, min 32 chars	Yes
+DATABASE_URL	Path to the SQLite file	No, has a default
+CORS_ORIGINS	Allowed frontend origin(s)	Yes for non-default setups
+ADMIN_EMAILS	Comma-separated emails treated as admin	Optional
+FAIL_RATE	0–1, artificially fails background jobs (for demoing retries)	No, defaults to 0
+SMTP_*, MAIL_FROM, APP_URL	[If shipped] outbound email for invites/OTP	No — falls back to a console logger if unset
+Running tests
+bash
+npm test
+Demo Credentials
+
+Seeded by npm run db:seed:
+
+Role	Email	Password
+Member	[veni@gmail.com]	[12345678]
+
+The seed also creates one demo project with several stories and tasks, deliberately including a blocked task, an overdue task, and a task left "in progress" for several days — so the health badges and the digest have something meaningful to show immediately, without manual setup.
