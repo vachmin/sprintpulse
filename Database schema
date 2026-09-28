@@ -23,3 +23,32 @@ Design notes on the schema
 Story health and progress are computed on read, never stored. They're derived from a story's tasks each time they're needed, so they can never drift out of sync with the underlying data. The cost is a bit more computation per request; the benefit is one less place for a bug to hide.
 status_changed_at drives staleness detection. Rather than maintaining a full audit history table for this, a single timestamp column is updated only when a task's status actually changes (not on every edit), which is enough to answer "how long has this been in progress?"
 Tasks have no direct project_id. Authorization for a task resolves through task → story → project → membership. That's one extra join, done through a single reusable helper, in exchange for not duplicating the project relationship on every child table.
+
+
+users
+  ├──owns──────────────► projects
+  ├──is a──────────────► project_members
+  └──assigned to───────► stories
+  └──assigned to───────► tasks
+
+projects
+  ├──has───────────────► project_members
+  ├──contains──────────► stories
+  └──summarized in─────► digests
+
+stories
+  └──contains──────────► tasks
+
+jobs
+  └──produces──────────► digests
+
+Relationships:
+users        1 ──── * projects          (a user owns many projects)
+users        1 ──── * project_members   (a user is a member of many projects)
+users        1 ──── * stories           (a user is assigned many stories)
+users        1 ──── * tasks             (a user is assigned many tasks)
+projects     1 ──── * project_members   (a project has many members)
+projects     1 ──── * stories           (a project contains many stories)
+projects     1 ──── * digests           (a project's activity is summarized in many digests)
+stories      1 ──── * tasks             (a story contains many tasks)
+jobs         1 ──── 1 digests           (a job produces one digest)
