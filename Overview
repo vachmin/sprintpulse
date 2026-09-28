@@ -1,0 +1,15 @@
+Overview
+
+SprintPulse Lite lets a small team:
+
+Create projects, invite/add members, and manage roles (owner vs. member)
+Break a project down into User Stories, each with a status, priority, description, and (optionally) tags, story points, and acceptance criteria
+Break each story down into Tasks, each with its own status, assignee, and due date
+Reorganize work by dragging stories/tasks between columns or reordering within a list
+View the project as a Kanban board, a hierarchy tree (Project → Story → Task), and an Overview dashboard with completion stats and per-member workload
+See a computed health badge (on track / at risk / stalled) on every story, based on its tasks
+Generate a daily digest — a short standup-style report of what moved, what's blocked, what's stale, and what's overdue — either automatically on a schedule or on demand
+[If shipped] Receive in-app notifications when a task goes stale or is assigned to them
+[If shipped] Export a project's current state as a CSV, search across projects/stories from a command palette, and view tasks on a due-date calendar
+
+The goal was a small, coherent tool rather than a feature-maximal one — most of the design decisions below are about deliberately keeping scope small enough to reason about in a few hours of engineering time, which mirrors the real constraint of the assignment.
