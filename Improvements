@@ -1,0 +1,10 @@
+With more time, in rough priority order:
+
+A full activity/audit log rather than relying on status_changed_at alone — full history of every change to a story or task, not just the most recent transition.
+Sprints, so work can be organized into time-boxed iterations with a burndown view, rather than just a flat backlog.
+Real-time updates (WebSockets or SSE) so a board updates live when a teammate makes a change, instead of relying on refetching.
+Postgres as a drop-in replacement for SQLite for a genuinely multi-instance deployment.
+Refresh-token rotation and session revocation, rather than a single long-lived JWT.
+Email delivery for invites and notifications made fully first-class (currently [falls back to console logging / is unfinished] without SMTP configured).
+More async job types — e.g. a scheduled due-date reminder job, or CSV/PDF report generation run as a background job with a downloadable result, reusing the existing queue infrastructure.
+[If the admin dashboard was cut] An admin analytics view — project-level completion and usage stats across the whole team — was explored but intentionally left out of this submission to keep the core requirements solid and well-tested rather than spreading effort thin.
