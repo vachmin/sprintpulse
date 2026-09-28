@@ -1,0 +1,34 @@
+This is the part of the assignment I spent the most deliberate design time on, since it's called out explicitly in both the Functional Scope and the Evaluation Criteria.
+
+What runs in the background
+
+A daily digest generator, running as a separate worker process from the API, reads a project's current task state and produces a short report: tasks that moved status in the last 24 hours, tasks currently blocked, tasks that have been "in progress" too long (stale), and tasks past their due date. It can be triggered manually (POST /projects/:id/digests, returns 202 immediately) or runs on a daily schedule.
+
+[If shipped: also describe the stale-task notification scanner here as a second job type.]
+
+Why a DB-backed queue instead of Redis/BullMQ
+
+For a 3–10 person team's usage volume, a message broker is infrastructure the problem doesn't need. A single jobs table in the same SQLite database gives durability (a job survives a restart), ordering, and — critically for this assignment — a queue whose failure modes are easy to inspect and explain, since they're just SQL rows rather than opaque broker internals. The tradeoff is that this approach would not scale past a single machine, which is explicitly fine for the stated scope.
+
+How jobs are claimed (avoiding double-processing)
+
+The worker claims a job with a single atomic SQL statement rather than a "select then update":
+
+sql
+UPDATE jobs
+SET status = 'running', locked_at = :now, attempts = attempts + 1
+WHERE id = (
+  SELECT id FROM jobs
+  WHERE status IN ('pending', 'failed') AND run_at <= :now
+  ORDER BY run_at LIMIT 1
+)
+RETURNING *;
+
+Doing this as one statement means two workers (or two ticks of the same worker) can never claim the same job — there's no window between reading a job and marking it claimed for a race to slip into.
+
+Failure handling
+Retries with exponential backoff: on failure, the job's run_at is pushed forward by 2^attempts × 30 seconds, so retries space themselves out rather than hammering a failing operation.
+Dead-lettering: after max_attempts failures, a job is marked dead rather than retried forever. [If shipped: it's then visible on /admin/jobs with a manual retry action.]
+Crash recovery: if the worker process dies mid-job, the job is left running with a locked_at timestamp. A reaper resets any job stuck running for more than 5 minutes back to pending, so a crash doesn't silently lose work.
+Idempotency: each digest is enqueued with a key like digest:{projectId}:{date}. If the same digest is requested twice (a double-click, or a retry after a partial failure), the second enqueue returns the existing job instead of creating a duplicate — so retries are safe to repeat.
+Demonstrating this: setting FAIL_RATE in .env to a value like 0.7 makes the digest handler randomly throw, so the retry → backoff → dead-letter path can be observed directly in the worker logs without needing to simulate a real outage.
